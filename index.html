@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>Hurrah! I learn database.</h1>
+    <form action="/addQuestion" method="post">
+        <input type="text" name="question" id="" placeholder="ex: How many elements in earth?">
+        <input type="text" name="option1" id="" placeholder="option1">
+        <input type="text" name="option2" id="" placeholder="option2">
+        <input type="text" name="option3" id="" placeholder="option3">
+        <input type="text" name="option4" id="" placeholder="option4">
+        <button type="submit">Add Question</button>
+    </form>
+    <div id="questions">
+        <div id="option">
+
+        </div>
+    </div>
+    <div id="update">
+
+    </div>
+    <script>
+        function loadQuestion() {
+            fetch('/question')
+                .then(res => res.json())
+                .then(question => {
+                    const container = document.getElementById('questions');
+                    container.innerHTML = '';
+                    question.forEach(element => {
+                        const item = document.createElement('p');
+                        item.innerHTML = `${element.question}
+                        <div><li>${element.option1}</li> <li>${element.option2}</li> <li>${element.option3}</li> <li>${element.option4}</div>
+                        <button onclick="deleteQuestion(event, '${element._id}')">Delete</button>
+                        <button onclick="updateMcq('${element._id}')">Update</button>`;
+                        container.appendChild(item);
+                    });
+                })
+        }
+        function deleteQuestion(event, id) {
+            fetch(`/delete/${id}`, {
+                method: 'DELETE',
+            })
+                .then(res => res.text()) // or res.json()
+                .then(result => {
+                    if(result){
+                        event.target.parentNode.style.display = 'none';
+                    }
+                })
+        }
+        function updateMcq(id) {
+            fetch(`/mcq/${id}`)
+                .then(res => res.json())
+                .then(data => {
+                    const update = document.getElementById('update');
+                    update.innerHTML = `
+                    <input type="text" name="question" id="question" value="${data.question}">
+                    <input type="text" name="option1" id="option1"  value="${data.option1}">
+                    <input type="text" name="option2" id="option2"  value="${data.option2}">
+                    <input type="text" name="option3" id="option3" value="${data.option3}">
+                    <input type="text" name="option4" id="option4" value="${data.option4}">
+                    <button onclick="updateQuestion('${data._id}')">Update</button>
+                   `;
+
+                });
+        }
+        function updateQuestion(id){
+        const question = document.getElementById('question').value;
+        const option1= document.getElementById('option1').value;
+        const option2= document.getElementById('option2').value;
+        const option3= document.getElementById('option3').value;
+        const option4= document.getElementById('option4').value;
+        const questions = {question, option1, option2, option3, option4};
+        fetch(`/update/${id}`, {
+          method: 'PATCH',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(questions)
+        })
+        .then(res => res.json())
+        .then(result => {
+          // console.log('updated');
+          loadQuestion();
+          document.getElementById('update').innerHTML = '';
+        })
+        }
+        loadQuestion();
+    </script>
+</body>
+
+</html>
